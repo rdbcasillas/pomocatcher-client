@@ -1,0 +1,19 @@
+<template>
+  <div class="home">
+    <img alt="Vue logo" src="../assets/logo.png">
+    <h1> HI </h1>
+    <mypomo></mypomo>
+  </div>
+</template>
+
+<script>
+// @ is an alias to /src
+
+import mypomo from '@/components/mypomo.vue';
+export default {
+  name: 'mypomo',
+  components: {
+    mypomo,
+  },
+};
+</script>
