@@ -1,9 +1,12 @@
 let countdown;
 let pause = false;
 let completedPomos = 0;
+const pomoend = document.getElementById("pomoend");
+const breakend = document.getElementById("breakend");
+
 countdown2 = $('#countdown2').countdown360({
   radius: 60,
-  seconds: 5,
+  seconds: 10,
   fontSize: 30,
   fillStyle: 'orange',
   strokeWidth: 4,
@@ -11,13 +14,14 @@ countdown2 = $('#countdown2').countdown360({
   autostart: false,
   smooth: true,
   onComplete() {
+    breakend.play();
     countdown.start();
   },
 });
 
 $('.startimer').click(() => {
   const pomolen = Number($('input.pomonum').val());
-  const mysecs = $('input.seconds').val() * 60;
+  const mysecs = $('input.seconds').val() * 12;
   countdown = $('#countdown').countdown360({
     radius: 60,
     seconds: mysecs,
@@ -29,15 +33,18 @@ $('.startimer').click(() => {
     onComplete() {
       $('.startimer').removeClass('hidden');
       $('.restart').addClass('hidden');
+      pomoend.play();
       completedPomos++;
       if (pomolen > completedPomos) {
         countdown2.start();
+      } else {
+        console.log("pomo session finished!");
+        $('#submitdata').click();
       }
     },
   });
   $('.startimer').addClass('hidden');
   $('.restart').removeClass('hidden');
-
   countdown.start();
   let counter = 0;
   let interval;
