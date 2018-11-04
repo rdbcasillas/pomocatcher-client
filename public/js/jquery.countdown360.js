@@ -28,8 +28,12 @@
   function Plugin(element, options) {
     this.element = element;
     this.settings = $.extend({}, defaults, options);
-    if (!this.settings.fontSize) { this.settings.fontSize = this.settings.radius / 1.2; }
-    if (!this.settings.strokeWidth) { this.settings.strokeWidth = this.settings.radius / 4; }
+    if (!this.settings.fontSize) {
+      this.settings.fontSize = this.settings.radius / 1.2;
+    }
+    if (!this.settings.strokeWidth) {
+      this.settings.strokeWidth = this.settings.radius / 4;
+    }
     this._defaults = defaults;
     this._name = pluginName;
     this._init();
@@ -74,7 +78,9 @@
 
     stop(cb) {
       clearInterval(this.interval);
-      if (cb) { cb(); }
+      if (cb) {
+        cb();
+      }
     },
 
     _init() {
@@ -83,14 +89,16 @@
       this.settings.arcX = this.settings.radius + this.settings.strokeWidth;
       this.settings.arcY = this.settings.arcX;
       this._initPen(this._getCanvas());
-      if (this.settings.autostart) { this.start(); }
+      if (this.settings.autostart) {
+        this.start();
+      }
     },
 
     _getCanvas() {
       const $canvas = $(`<canvas id="countdown360_${$(this.element).attr('id')}" width="${
         this.settings.width}" height="${
         this.settings.height}">` +
-                      '<span id="countdown-text" role="status" aria-live="assertive"></span></canvas>');
+        '<span id="countdown-text" role="status" aria-live="assertive"></span></canvas>');
       $(this.element).prepend($canvas[0]);
       return $canvas[0];
     },
@@ -118,9 +126,9 @@
       this.ariaText.text(secondsLeft);
       this.pen.font = `${this.settings.fontWeight} ${this.settings.fontSize}px ${this.settings.fontFamily}`;
       var secondsLeft = this._secondsLeft(secondsElapsed),
-        label = (secondsLeft >= 120) ? (this.settings.label[1])
-          : ((secondsLeft <= 120 && secondsLeft >= 60) ? (this.settings.label[0])
-            : (this.settings.label[2])),
+        label = (secondsLeft >= 120) ? (this.settings.label[1]) :
+        ((secondsLeft <= 120 && secondsLeft >= 60) ? (this.settings.label[0]) :
+          (this.settings.label[2])),
         drawLabel = this.settings.label && this.settings.label.length === 3,
         x = this.settings.width / 2;
       if (drawLabel) {
@@ -139,6 +147,7 @@
         this.pen.fillStyle = this.settings.fontColor;
         this.pen.fillText(minutesLeft, x, y);
       }
+      $('#headlabel').html(minutesLeft);
       if (drawLabel) {
         this.pen.font = `normal small-caps ${this.settings.fontSize / 3}px ${this.settings.fontFamily}`;
         this.pen.fillText(label, this.settings.width / 2, this.settings.height / 2 + (this.settings.fontSize / 2.2));
@@ -150,7 +159,9 @@
       this.pen.beginPath();
       this.pen.arc(this.settings.arcX, this.settings.arcY, this.settings.radius, Math.PI * 1.5, endAngle, false);
       this.pen.fill();
-      if (drawStroke) { this.pen.stroke(); }
+      if (drawStroke) {
+        this.pen.stroke();
+      }
     },
 
     _draw() {

@@ -3,7 +3,7 @@
 		<form @submit.prevent="addPomo" class="mb-3">
 			<fieldset>
 				<div class="row">
-					<div class="col-4">
+					<div class="col-2">
 						<div class="form-group">
 							<input v-model="pomo.username" type="text" class="form-control" id="username" aria-describedby="emailHelp" placeholder="Enter username">
 						</div>
@@ -15,15 +15,16 @@
 					</div>
 				</div>
 				<div class="row">
-					<div class="col-6">
+					<div class="col-2">
 						<input type="number" v-model="pomo.pomocount" id="pomocount" class="form-control pomonum" placeholder="How many pomos?" />
-						<input type="number" class="form-control seconds" placeholder="Enter pomo length in minutes" />
+						<input type="number" v-model="pomo.pomotime" class="form-control seconds" placeholder="Enter pomo length in minut" />
 					</div>
 				</div>
 				<button id="submitdata" type="submit" class="btn btn-primary hidden">Submit</button>
 			</fieldset>
 		</form>
-		<div class="col-3">
+		<div class="row">
+		<div class="col-1">
 			<button class="btn btn-primary startimer">
 			Start Timer
 			</button>
@@ -31,64 +32,36 @@
 			Restart
 			</button>
 		</div>
-		<div class="row">
-			<div class="col-3">
+			<div id="countdiv1" class="col-2">
 				<div id="countdown"></div>
 			</div>
-			<div class="col-3">
+			<div id="countdiv2" class="col-2 hidden">
 				<div id="countdown2"></div>
 			</div>
+			<div class="col-1">
+				<h2 id="pomocounter"></h2>
+			</div>
 		</div>
+		<br>
 		<div class="row">
-			<div class="col-4">
-				<div class="container">
-				</div>
-			</div>
-			<div class="col-4">
-				<div class="container2">
-				</div>
-			</div>
-			<div class="col-4">
-				<div id="chart">
+			<div class="col-6">
+				<div ref="chart">
 				</div>
 			</div>
 		</div>
 		<!-- <pomolist v-for="(pomo, index) in latestPomos" :key="pomo._id" v-bind:pomo="pomo"/> -->
-		<div class="card text-white bg-success mb-3" style="max-width: 20rem;" v-for="(pomo, index) in latestPomos" :key="pomo._id" v-bind:pomo="pomo">
-			<!-- Modal -->
-			<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-				<div class="modal-dialog" role="document">
-					<div class="modal-content">
-						<div class="modal-header">
-							<h5 style="color:black" class="modal-title" id="exampleModalLabel">{{ pomo.username }}</h5>
-							<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-									<span aria-hidden="true">&times;</span>
-								</button>
-						</div>
-						<div style="color:black" class="modal-body">
-							Update Pomo count!
-							<textarea v-model="pomo.pomocount" class="form-control" id="pomocount" rows="1"></textarea> Add or Update comment!
-							<textarea v-model="pomo.comment" class="form-control" id="comment" rows="2"></textarea>
-						</div>
-						<div class="modal-footer">
-							<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-							<button @click="updatePomo(pomo)" data-dismiss="modal" type="button" class="btn btn-primary">Save changes</button>
-						</div>
-					</div>
-				</div>
-			</div>
-			<!-- Modal Ends -->
-			<div class="card-header"> {{ pomo.username }}</div>
-			<div class="card-header"> Pomo Count: {{ pomo.pomocount }}</div>
-			<button type="button" class="close" aria-label="Close"></button>
+		<br>
+		<div class="flex-container">
+		<div class="pomocard" v-for="(pomo, index) in latestPomos" :key="pomo._id" v-bind:pomo="pomo">
+		<div class="card border-success mb-3" style="max-width: 10rem;" >
+			<div class="card-header">  {{ pomo.created }}</div>
 			<div class="card-body">
 				<p class="card-text"> {{ pomo.comment }}</p>
-				<p class="card-text"> {{ pomo.created }}</p>
+				<p class="card-text"> {{ pomo.pomocount }}</p>
 			</div>
-			<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">
-					Edit Pomo
-				</button>
 			<button @click="removePomo(pomo, index)" type="button" class="btn btn-danger">Remove</button>
+		</div>
+		</div>
 		</div>
 	</div>
 </template>
@@ -98,9 +71,8 @@
 // <!--import pomolist from '@/components/pomolist.vue'; -->
 import * as d3 from 'd3';
 import * as c3 from 'c3';
-import { barchartBuilder } from '@/pomograph.js';
-import { linechartBuilder } from '@/pomolinechart.js';
-console.log(c3);
+//import { barchartBuilder } from '@/pomograph.js';
+//import { linechartBuilder } from '@/pomolinechart.js';
 
 const API = 'http://localhost:9999/pomotimer';
 
@@ -111,7 +83,9 @@ export default {
     pomo: {
       username: '',
       comment: '',
+      pomotime: 30,
     },
+    fullarray: [],
   }),
   computed: {
     latestPomos() {
@@ -133,46 +107,65 @@ export default {
         </button>;
         let groupdata = d3
           .nest()
-          .key(function(d) {
-            return d.created;
-          })
+          .key(d => d.created)
           .entries(this.pomos);
-        let d3parse = d3.isoParse;
-        let dates = groupdata.map(function(d) {
-          return d3parse(d.key);
-        });
+        const d3parse = d3.isoParse;
+        let dates = groupdata.map(d => d3parse(d.key));
+        let pomolist = groupdata.map(d => d.values);
 
-        let pomolist = groupdata.map(function(d) {
-          return d.values;
+        // pomolist.forEach(function(pomo) {
+        //   this.count += +d.pomocount;
+        // });
+        let maxlen = 0;
+        pomolist.forEach(function(d) {
+          let currlen = d.length;
+          if (currlen > maxlen) {
+            maxlen = currlen;
+          }
         });
+        console.log(this.latestPomos);
+        //this.mystr = 'timothy';
         let variables = {};
         let vararray = [];
-        for (let i = 0; i <= 3; i++) {
-          variables['data' + i] = pomolist.map(function(d) {
+        for (let i = 0; i <= maxlen - 1; i++) {
+          variables[`data${i}`] = pomolist.map(d => {
             if (d[i]) {
               return Number(d[i].pomocount);
-            } else {
-              return 0;
             }
+            return 0;
           });
-          variables['data' + i] = ['session' + (i + 1)].concat(variables['data' + i]);
-          vararray.push(variables['data' + i]);
+          variables[`data${i}`] = [`session${i + 1}`].concat(variables[`data${i}`]);
+          vararray.push(variables[`data${i}`]);
         }
         let datearr = ['x'].concat(dates);
-        let fullarray = [datearr].concat(vararray);
-        var chart = c3.generate({
-          bindto: '#chart',
+        this.fullarray = [datearr].concat(vararray);
+        const chart = c3.generate({
+          bindto: this.$refs.chart,
           data: {
             x: 'x',
-            columns: fullarray,
+            columns: this.fullarray,
             type: 'bar',
-            groups: [['session1', 'session2', 'session3', 'session4', 'session5']],
+            groups: [['session1', 'session2', 'session3', 'session4']],
           },
           axis: {
             x: {
               type: 'timeseries',
               tick: {
-                format: '%Y/%m/%d',
+                format: '%m/%d',
+              },
+              label: {
+                text: 'Date',
+                position: 'outer-center',
+              },
+            },
+            y: {
+              tick: {
+                fit: false,
+                values: [1, 2, 3, 4, 5, 6, 7, 8],
+              },
+              label: {
+                text: 'Number of pomos',
+                position: 'outer-center',
               },
             },
           },
@@ -185,12 +178,15 @@ export default {
               ],
             },
           },
+          legend: {
+            position: 'right',
+          },
         });
 
-        let barchart = new barchartBuilder();
-        barchart.createChart(this.pomos);
-        let linechart = new linechartBuilder();
-        linechart.createChart(this.pomos);
+        //const barchart = new barchartBuilder();
+        //barchart.createChart(this.pomos);
+        //const linechart = new linechartBuilder();
+        //linechart.createChart(this.pomos);
       });
   },
   components: {

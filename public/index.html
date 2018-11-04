@@ -9,7 +9,7 @@
 	<link rel="stylesheet" href="https://bootswatch.com/4/sandstone/bootstrap.min.css">
 	<link rel="stylesheet" href="styles/style.css">
 	<link rel="stylesheet" href="styles/c3.css">
-	<title>client</title>
+	<title id="headlabel">client</title>
 </head>
 
 <body>
@@ -37,5 +37,15 @@
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
  crossorigin="anonymous"></script>
 <script type="text/javascript" src="js/pomotimer.js"></script>
+<script>
+	$('.border-success').hover(
+		function () {
+			$(this).addClass('bg-success')
+		},
+		function () {
+			$(this).removeClass('bg-success')
+		}
+	)
+</script>
 
 </html>

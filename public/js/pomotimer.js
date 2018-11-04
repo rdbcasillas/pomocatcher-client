@@ -1,12 +1,12 @@
 let countdown;
 let pause = false;
 let completedPomos = 0;
-const pomoend = document.getElementById("pomoend");
-const breakend = document.getElementById("breakend");
+const pomoend = document.getElementById('pomoend');
+const breakend = document.getElementById('breakend');
 
 countdown2 = $('#countdown2').countdown360({
   radius: 60,
-  seconds: 10,
+  seconds: 5 * 60,
   fontSize: 30,
   fillStyle: 'orange',
   strokeWidth: 4,
@@ -16,12 +16,14 @@ countdown2 = $('#countdown2').countdown360({
   onComplete() {
     breakend.play();
     countdown.start();
+    $('#countdiv1').removeClass('hidden');
+    $('#countdiv2').addClass('hidden');
   },
 });
 
 $('.startimer').click(() => {
   const pomolen = Number($('input.pomonum').val());
-  const mysecs = $('input.seconds').val() * 12;
+  const mysecs = $('input.seconds').val() * 60;
   countdown = $('#countdown').countdown360({
     radius: 60,
     seconds: mysecs,
@@ -33,13 +35,17 @@ $('.startimer').click(() => {
     onComplete() {
       $('.startimer').removeClass('hidden');
       $('.restart').addClass('hidden');
+      $('#countdiv1').addClass('hidden');
+      $('#countdiv2').removeClass('hidden');
       pomoend.play();
       completedPomos++;
+      $('#pomocounter').html(completedPomos + "/" + pomolen);
       if (pomolen > completedPomos) {
         countdown2.start();
       } else {
-        console.log("pomo session finished!");
+        console.log('pomo session finished!');
         $('#submitdata').click();
+        location.reload(true);
       }
     },
   });

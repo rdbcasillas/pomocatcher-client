@@ -1,8 +1,15 @@
 .hidden {
-    display: none!important;
+    display: none !important;
 }
+
 .line {
     fill: none;
     stroke: steelblue;
     stroke-width: 2px;
+}
+
+.flex-container {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
 }
