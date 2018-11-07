@@ -39,7 +39,7 @@ $('.startimer').click(() => {
       $('#countdiv2').removeClass('hidden');
       pomoend.play();
       completedPomos++;
-      $('#pomocounter').html(completedPomos + "/" + pomolen);
+      $('#pomocounter').html(`${completedPomos}/${pomolen}`);
       if (pomolen > completedPomos) {
         countdown2.start();
       } else {

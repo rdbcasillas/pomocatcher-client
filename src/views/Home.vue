@@ -52,12 +52,15 @@
 		<!-- <pomolist v-for="(pomo, index) in latestPomos" :key="pomo._id" v-bind:pomo="pomo"/> -->
 		<br>
 		<div class="flex-container">
-		<div class="pomocard" v-for="(pomo, index) in latestPomos" :key="pomo._id" v-bind:pomo="pomo">
-		<div class="card border-success mb-3" style="max-width: 10rem;" >
-			<div class="card-header">  {{ pomo.created }}</div>
+		<div class="card border-success mb-3" style="max-width: 10rem;" v-for="(pomo, index) in dailyPomos" :key="pomo.date" v-bind:pomo="pomo">
+			<div class="card-header">  {{ pomo.date }}
+        <span class="highpomo" v-if="pomo.pomocount>=5">{{pomo.pomocount}}</span>
+        <span class="lowpomo" v-else>{{pomo.pomocount}}</span>
+        </div>
 			<div class="card-body">
-				<p class="card-text"> {{ pomo.comment }}</p>
-				<p class="card-text"> {{ pomo.pomocount }}</p>
+        <ul v-for="(comment) in pomo.comments" v-bind:key="comment">
+          <li>{{ comment }}</li>
+        </ul>
 			</div>
 			<button @click="removePomo(pomo, index)" type="button" class="btn btn-danger">Remove</button>
 		</div>
@@ -71,8 +74,8 @@
 // <!--import pomolist from '@/components/pomolist.vue'; -->
 import * as d3 from 'd3';
 import * as c3 from 'c3';
-//import { barchartBuilder } from '@/pomograph.js';
-//import { linechartBuilder } from '@/pomolinechart.js';
+// import { barchartBuilder } from '@/pomograph.js';
+// import { linechartBuilder } from '@/pomolinechart.js';
 
 const API = 'http://localhost:9999/pomotimer';
 
@@ -91,6 +94,31 @@ export default {
     latestPomos() {
       return this.pomos.slice().reverse();
     },
+    dailyPomos() {
+      let temp = d3
+        .nest()
+        .key(d => d.created)
+        .entries(this.pomos);
+      let temparr = [];
+      temp.forEach(d => {
+        let tempobj = {};
+        let values = d['values'];
+        tempobj.date = d['key'];
+        let totalcount = _.sumBy(values, function(o) {
+          return +o.pomocount;
+        });
+        let allcomms = _.keys(
+          _.groupBy(values, function(o) {
+            return o.comment;
+          }),
+        );
+        tempobj.pomocount = totalcount;
+        tempobj.comments = allcomms;
+        temparr.push(tempobj);
+      });
+      let reverse_tmparr = temparr.slice().reverse();
+      return reverse_tmparr;
+    },
   },
   mounted() {
     fetch(API)
@@ -105,28 +133,28 @@ export default {
         >
           Edit Pomo
         </button>;
-        let groupdata = d3
+        const groupdata = d3
           .nest()
           .key(d => d.created)
           .entries(this.pomos);
         const d3parse = d3.isoParse;
-        let dates = groupdata.map(d => d3parse(d.key));
-        let pomolist = groupdata.map(d => d.values);
+        const dates = groupdata.map(d => d3parse(d.key));
+        const pomolist = groupdata.map(d => d.values);
 
         // pomolist.forEach(function(pomo) {
         //   this.count += +d.pomocount;
         // });
         let maxlen = 0;
-        pomolist.forEach(function(d) {
-          let currlen = d.length;
+        pomolist.forEach(d => {
+          const currlen = d.length;
           if (currlen > maxlen) {
             maxlen = currlen;
           }
         });
-        console.log(this.latestPomos);
-        //this.mystr = 'timothy';
-        let variables = {};
-        let vararray = [];
+        console.log(groupdata);
+        // this.mystr = 'timothy';
+        const variables = {};
+        const vararray = [];
         for (let i = 0; i <= maxlen - 1; i++) {
           variables[`data${i}`] = pomolist.map(d => {
             if (d[i]) {
@@ -137,7 +165,7 @@ export default {
           variables[`data${i}`] = [`session${i + 1}`].concat(variables[`data${i}`]);
           vararray.push(variables[`data${i}`]);
         }
-        let datearr = ['x'].concat(dates);
+        const datearr = ['x'].concat(dates);
         this.fullarray = [datearr].concat(vararray);
         const chart = c3.generate({
           bindto: this.$refs.chart,
@@ -183,10 +211,10 @@ export default {
           },
         });
 
-        //const barchart = new barchartBuilder();
-        //barchart.createChart(this.pomos);
-        //const linechart = new linechartBuilder();
-        //linechart.createChart(this.pomos);
+        // const barchart = new barchartBuilder();
+        // barchart.createChart(this.pomos);
+        // const linechart = new linechartBuilder();
+        // linechart.createChart(this.pomos);
       });
   },
   components: {

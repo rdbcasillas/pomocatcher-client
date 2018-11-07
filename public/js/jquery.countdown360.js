@@ -127,8 +127,8 @@
       this.pen.font = `${this.settings.fontWeight} ${this.settings.fontSize}px ${this.settings.fontFamily}`;
       var secondsLeft = this._secondsLeft(secondsElapsed),
         label = (secondsLeft >= 120) ? (this.settings.label[1]) :
-        ((secondsLeft <= 120 && secondsLeft >= 60) ? (this.settings.label[0]) :
-          (this.settings.label[2])),
+          ((secondsLeft <= 120 && secondsLeft >= 60) ? (this.settings.label[0]) :
+            (this.settings.label[2])),
         drawLabel = this.settings.label && this.settings.label.length === 3,
         x = this.settings.width / 2;
       if (drawLabel) {
