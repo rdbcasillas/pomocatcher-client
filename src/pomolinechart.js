@@ -1,66 +1,101 @@
 import * as d3 from 'd3';
 
 function linechartBuilder() {
-  let margin = {
-      top: 20, right: 20, bottom: 70, left: 50,
-    },
-    width = 500 - margin.left - margin.right,
-    height = 300 - margin.top - margin.bottom;
+  let weekday = "monday";
+  let width = 200,
+    cellSize = 13,
+    height = cellSize * 9;
 
-  // parse the date / time
-  const parseDate = d3.isoParse;
+  function pathMonth(t) {
+    let n = weekday === "weekday" ? 5 : 7;
+    let d = Math.max(0, Math.min(n, countDay(t)));
+    let w = timeWeek.count(d3.timeYear(t), t);
+    return `${d === 0 ? `M${w * cellSize},0`
+    : d === n ? `M${(w + 1) * cellSize},0`
+    : `M${(w + 1) * cellSize},0V${d * cellSize}H${w * cellSize}`}V${n * cellSize}`;
+  }
+  let formatDate = d3.timeFormat("%x");
+  let format = d3.format("+.2%");
+  let formatDay = d => "SMTWTFS" [d.getDay()];
+  let formatMonth = d3.timeFormat("%b");
 
-  // set the ranges
-  const x = d3.scaleTime().range([0, width]);
-  const y = d3.scaleLinear().range([height, 0]);
+  let color = d3.scaleSequential(d3.interpolateBlues).domain([0, 10])
 
-  // define the line
-  const valueline = d3.line()
-    .x(d => x(d.created))
-    .y(d => y(d.pomocount));
+  var formatPercent = d3.format(".1%");
+  let countDay = weekday === "sunday" ? d => d.getDay() : d => (d.getDay() + 6) % 7;
 
-  // append the svg obgect to the body of the page
-  // appends a 'group' element to 'svg'
-  // moves the 'group' element to the top left margin
-  const svg2 = d3.select('.container2').append('svg')
-    .attr('width', width + margin.left + margin.right)
-    .attr('height', height + margin.top + margin.bottom)
-    .append('g')
-    .attr(
-      'transform',
-      `translate(${margin.left},${margin.top})`,
-    );
+  let timeWeek = weekday === "sunday" ? d3.timeSunday : d3.timeMonday;
 
-  this.createChart = function (pomosdata) {
-    pomosdata.forEach((d) => {
-      d.created = parseDate(d.created);
-      d.pomocount = +d.pomocount;
+  this.createChart = function (data) {
+    data.forEach((d) => {
+      d.date = new Date(d.date);
+      d.value = +d.pomocount;
     });
+    let years = d3.nest()
+      .key(d => d.date.getFullYear())
+      .entries(data)
+      .reverse();
 
-    // Scale the range of the pomosdata
-    x.domain(d3.extent(pomosdata, d => d.created));
-    y.domain([0, d3.max(pomosdata, d => d.pomocount)]);
+    let svg = d3.select("#calendar")
+      .append("svg")
+      .attr("width", width)
+      .attr("height", height * years.length)
+      .style("font", "12px sans-serif")
+      .style("width", "100%")
+      .style("height", "auto");
 
-    // Add the valueline path.
-    svg2.append('path')
-      .data([pomosdata])
-      .attr('class', 'line')
-      .attr('d', valueline);
+    let year = svg.selectAll("g")
+      .data(years)
+      .enter().append("g")
+      .attr("transform", (d, i) => `translate(40,${height * i + cellSize * 1.5})`);
 
-    // Add the X Axis
-    svg2.append('g')
-      .attr('transform', `translate(0,${height})`)
-      .call(d3.axisBottom(x).tickFormat(d3.timeFormat('%d-%b-%y')))
-      .selectAll('text')
-      .style('text-anchor', 'end')
-      .attr('dx', '-.8em')
-      .attr('dy', '-.55em')
-      .attr('transform', 'rotate(-90)');
+    year.append("text")
+      .attr("x", -5)
+      .attr("y", -5)
+      .attr("font-weight", "bold")
+      .attr("text-anchor", "end")
+      .text(d => d.key);
 
-    // Add the Y Axis
-    svg2.append('g')
-      .call(d3.axisLeft(y));
+    year.append("g")
+      .attr("text-anchor", "end")
+      .selectAll("text")
+      .data((weekday === "weekday" ? d3.range(2, 7) : d3.range(7)).map(i => new Date(1995, 0, i)))
+      .enter().append("text")
+      .attr("x", -5)
+      .attr("y", d => (countDay(d) + 0.5) * cellSize)
+      .attr("dy", "0.31em")
+      .text(formatDay);
+
+    year.append("g")
+      .selectAll("rect")
+      .data(d => d.values)
+      .enter().append("rect")
+      .attr("width", cellSize - 1)
+      .attr("height", cellSize)
+      .attr("x", d => timeWeek.count(d3.timeYear(d.date), d.date) * cellSize + 0.5)
+      .attr("y", d => countDay(d.date) * cellSize + 0.5)
+      .attr("fill", d => color(d.value))
+      .append("title")
+      .text(d => `${formatDate(d.date)}: ${d.value} pomos`);
+
+    let month = year.append("g")
+      .selectAll("g")
+      .data(d => d3.timeMonths(d3.timeMonth(d.values[0].date), d.values[d.values.length - 1].date))
+      .enter().append("g");
+
+    month.filter((d, i) => i).append("path")
+      .attr("fill", "none")
+      .attr("stroke", "#fff")
+      .attr("stroke-width", 3)
+      .attr("d", pathMonth);
+
+    month.append("text")
+      .attr("x", d => timeWeek.count(d3.timeYear(d), timeWeek.ceil(d)) * cellSize - 10)
+      .attr("y", -5)
+      .text(formatMonth);
   };
-}
+};
 
-export { linechartBuilder };
+export {
+  linechartBuilder
+};

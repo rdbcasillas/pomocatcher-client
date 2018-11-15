@@ -35,17 +35,18 @@
 			<div id="countdiv1" class="col-2">
 				<div id="countdown"></div>
 			</div>
-			<div id="countdiv2" class="col-2 hidden">
-				<div id="countdown2"></div>
-			</div>
 			<div class="col-1">
 				<h2 id="pomocounter"></h2>
 			</div>
 		</div>
 		<br>
 		<div class="row">
-			<div class="col-6">
+			<div class="col-6 d3chart">
 				<div ref="chart">
+				</div>
+			</div>
+			<div class="col-6 d3chart">
+				<div id="calendar">
 				</div>
 			</div>
 		</div>
@@ -58,8 +59,8 @@
         <span class="lowpomo" v-else>{{pomo.pomocount}}</span>
         </div>
 			<div class="card-body">
-        <ul v-for="(comment) in pomo.comments" v-bind:key="comment">
-          <li>{{ comment }}</li>
+        <ul>
+          <li v-for="(comment) in pomo.comments" v-bind:key="comment">{{ comment }}</li>
         </ul>
 			</div>
 			<button @click="removePomo(pomo, index)" type="button" class="btn btn-danger">Remove</button>
@@ -74,9 +75,7 @@
 // <!--import pomolist from '@/components/pomolist.vue'; -->
 import * as d3 from 'd3';
 import * as c3 from 'c3';
-// import { barchartBuilder } from '@/pomograph.js';
-// import { linechartBuilder } from '@/pomolinechart.js';
-
+import { linechartBuilder } from '@/pomolinechart.js';
 const API = 'http://localhost:9999/pomotimer';
 
 export default {
@@ -95,28 +94,22 @@ export default {
       return this.pomos.slice().reverse();
     },
     dailyPomos() {
-      let temp = d3
+      const temp = d3
         .nest()
         .key(d => d.created)
         .entries(this.pomos);
-      let temparr = [];
+      const temparr = [];
       temp.forEach(d => {
-        let tempobj = {};
-        let values = d['values'];
-        tempobj.date = d['key'];
-        let totalcount = _.sumBy(values, function(o) {
-          return +o.pomocount;
-        });
-        let allcomms = _.keys(
-          _.groupBy(values, function(o) {
-            return o.comment;
-          }),
-        );
+        const tempobj = {};
+        const values = d.values;
+        tempobj.date = d.key;
+        const totalcount = _.sumBy(values, o => +o.pomocount);
+        const allcomms = _.keys(_.groupBy(values, o => o.comment));
         tempobj.pomocount = totalcount;
         tempobj.comments = allcomms;
         temparr.push(tempobj);
       });
-      let reverse_tmparr = temparr.slice().reverse();
+      const reverse_tmparr = temparr.slice().reverse();
       return reverse_tmparr;
     },
   },
@@ -125,14 +118,6 @@ export default {
       .then(response => response.json())
       .then(result => {
         this.pomos = result;
-        <button
-          type="button"
-          class="btn btn-primary"
-          data-toggle="modal"
-          data-target="#exampleModal"
-        >
-          Edit Pomo
-        </button>;
         const groupdata = d3
           .nest()
           .key(d => d.created)
@@ -141,9 +126,6 @@ export default {
         const dates = groupdata.map(d => d3parse(d.key));
         const pomolist = groupdata.map(d => d.values);
 
-        // pomolist.forEach(function(pomo) {
-        //   this.count += +d.pomocount;
-        // });
         let maxlen = 0;
         pomolist.forEach(d => {
           const currlen = d.length;
@@ -151,8 +133,6 @@ export default {
             maxlen = currlen;
           }
         });
-        console.log(groupdata);
-        // this.mystr = 'timothy';
         const variables = {};
         const vararray = [];
         for (let i = 0; i <= maxlen - 1; i++) {
@@ -206,15 +186,25 @@ export default {
               ],
             },
           },
-          legend: {
+          leged: {
             position: 'right',
           },
         });
+        let temparr = [];
+        groupdata.forEach(d => {
+          let tempobj = {};
+          let values = d.values;
+          tempobj.date = d.key;
+          let totalcount = _.sumBy(values, o => +o.pomocount);
+          let allcomms = _.keys(_.groupBy(values, o => o.comment));
+          tempobj.pomocount = totalcount;
+          tempobj.comments = allcomms;
+          temparr.push(tempobj);
+        });
 
-        // const barchart = new barchartBuilder();
-        // barchart.createChart(this.pomos);
-        // const linechart = new linechartBuilder();
-        // linechart.createChart(this.pomos);
+        console.log(temparr);
+        const linechart = new linechartBuilder();
+        linechart.createChart(temparr);
       });
   },
   components: {

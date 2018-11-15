@@ -18,6 +18,10 @@
     background: greenyellow;
 }
 
+.d3chart {
+    border: 1px solid #000;
+}
+
 .lowpomo {
     color: red;
     background: pink;
@@ -27,4 +31,41 @@
     display: flex;
     flex-wrap: wrap;
     align-items: stretch;
+}
+
+.path--background {
+    fill: floralwhite;
+    stroke: #000;
+    stroke-width: 1px;
+}
+
+.path--foreground {
+    fill: steelblue;
+    stroke: maroon;
+    stroke-width: 3px;
+}
+
+.break--foreground {
+    fill: orange;
+    stroke: maroon;
+    stroke-width: 3px;
+}
+
+.label {
+    font: 24px sans-serif;
+    text-anchor: middle;
+}
+
+li {
+    text-align: left;
+}
+
+ul {
+    list-style-type: circle;
+    background-color: aliceblue;
+    padding: 10px 20px;
+}
+
+div.card-body {
+    padding: 0.5rem;
 }
