@@ -3,21 +3,41 @@
 		<form @submit.prevent="addPomo" class="mb-3">
 			<fieldset>
 				<div class="row">
-					<div class="col-2">
+				<div class="col-4">
 						<div class="form-group">
-							<input v-model="pomo.username" type="text" class="form-control" id="username" aria-describedby="emailHelp" placeholder="Enter username">
-						</div>
-					</div>
-					<div class="col-4">
-						<div class="form-group">
-							<textarea v-model="pomo.comment" class="form-control" id="comment" rows="1" placeholder="What are you working on?"></textarea>
+							<textarea v-model="pomo.comment" class="form-control" id="comment" rows="3" placeholder="What are you working on?"></textarea>
 						</div>
 					</div>
 				</div>
+        <div class="row">
+          <div class="col-3">
+            <h6 style="font-weight:bolder">Pick study/break time ratio</h6>
+          </div>
+        </div>
 				<div class="row">
-					<div class="col-2">
-						<input type="number" v-model="pomo.pomocount" id="pomocount" class="form-control pomonum" placeholder="How many pomos?" />
-						<input type="number" v-model="pomo.pomotime" class="form-control seconds" placeholder="Enter pomo length in minut" />
+					<div class="col-4">
+            <div id="pomotimediv" class="pomodiv">
+              <label class="blue"><input type="radio" v-model="pomo.pomotime" class="form-control" value="25"><span>25/5</span></label>
+              <label class="blue"><input type="radio" v-model="pomo.pomotime" class="form-control" value="32"><span>32/8</span></label>
+              <label class="blue"><input type="radio" v-model="pomo.pomotime" class="form-control" value="40"><span>40/10</span></label>
+              <label class="blue"><input type="radio" v-model="pomo.pomotime" class="form-control" value="50"><span>50/10</span></label>
+             </div>
+					</div>
+				</div>
+        <hr>
+        <div class="row">
+          <div class="col-3">
+            <h6 style="font-weight:bolder">Pick number of pomos</h6>
+          </div>
+        </div>
+				<div class="row">
+					<div class="col-4">
+            <div id="pomocountdiv" class="pomodiv">
+              <label class="blue"><input type="radio" v-model="pomo.pomocount" class="form-control" value="1"><span>1</span></label>
+              <label class="blue"><input type="radio" v-model="pomo.pomocount" class="form-control" value="2"><span>2</span></label>
+              <label class="blue"><input type="radio" v-model="pomo.pomocount" class="form-control" value="3"><span>3</span></label>
+              <label class="blue"><input type="radio" v-model="pomo.pomocount" class="form-control" value="4"><span>4</span></label>
+             </div>
 					</div>
 				</div>
 				<button id="submitdata" type="submit" class="btn btn-primary hidden">Submit</button>
@@ -76,6 +96,16 @@
 import * as d3 from 'd3';
 import * as c3 from 'c3';
 import { linechartBuilder } from '@/pomolinechart.js';
+const mydata = [];
+db.collection('pomos')
+  .get()
+  .then(res => {
+    res.docs.forEach(doc => {
+      mydata.push(doc.data());
+      console.log(mydata);
+    });
+  });
+//const API = 'https://pomocatcher.herokuapp.com/pomotimer';
 const API = 'http://localhost:9999/pomotimer';
 
 export default {
@@ -85,7 +115,8 @@ export default {
     pomo: {
       username: '',
       comment: '',
-      pomotime: 30,
+      pomocount: 1,
+      pomotime: 32,
     },
     fullarray: [],
   }),
@@ -118,10 +149,12 @@ export default {
       .then(response => response.json())
       .then(result => {
         this.pomos = result;
+        console.log(this.pomos);
         const groupdata = d3
           .nest()
           .key(d => d.created)
           .entries(this.pomos);
+        console.log(groupdata);
         const d3parse = d3.isoParse;
         const dates = groupdata.map(d => d3parse(d.key));
         const pomolist = groupdata.map(d => d.values);
@@ -190,19 +223,18 @@ export default {
             position: 'right',
           },
         });
-        let temparr = [];
+        const temparr = [];
         groupdata.forEach(d => {
-          let tempobj = {};
-          let values = d.values;
+          const tempobj = {};
+          const values = d.values;
           tempobj.date = d.key;
-          let totalcount = _.sumBy(values, o => +o.pomocount);
-          let allcomms = _.keys(_.groupBy(values, o => o.comment));
+          const totalcount = _.sumBy(values, o => +o.pomocount);
+          const allcomms = _.keys(_.groupBy(values, o => o.comment));
           tempobj.pomocount = totalcount;
           tempobj.comments = allcomms;
           temparr.push(tempobj);
         });
 
-        console.log(temparr);
         const linechart = new linechartBuilder();
         linechart.createChart(temparr);
       });
@@ -240,7 +272,6 @@ export default {
         });
     },
     updatePomo(pomo) {
-      console.log(pomo);
       fetch(API, {
         method: 'PUT',
         body: JSON.stringify(pomo),
@@ -249,9 +280,7 @@ export default {
         },
       })
         .then(response => response.json())
-        .then(result => {
-          console.log(result);
-        });
+        .then(result => {});
     },
   },
 };

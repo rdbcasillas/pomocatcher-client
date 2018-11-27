@@ -1,0 +1,29 @@
+[debug] [2018-11-19T11:33:25.068Z] ----------------------------------------------------------------------
+[debug] [2018-11-19T11:33:25.070Z] Command:       /usr/local/Cellar/node/11.2.0/bin/node /usr/local/Cellar/node/11.2.0/bin/firebase serve
+[debug] [2018-11-19T11:33:25.070Z] CLI Version:   6.1.0
+[debug] [2018-11-19T11:33:25.070Z] Platform:      darwin
+[debug] [2018-11-19T11:33:25.070Z] Node Version:  v11.2.0
+[debug] [2018-11-19T11:33:25.072Z] Time:          Mon Nov 19 2018 05:33:25 GMT-0600 (Central Standard Time)
+[debug] [2018-11-19T11:33:25.072Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2018-11-19T11:33:25.084Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2018-11-19T11:33:25.084Z] > authorizing via signed-in user
+[debug] [2018-11-19T11:33:25.084Z] [iam] checking project pomocatcher for permissions ["firebase.projects.get"]
+[debug] [2018-11-19T11:33:25.086Z] >>> HTTP REQUEST POST https://cloudresourcemanager.googleapis.com/v1/projects/pomocatcher:testIamPermissions  
+
+[debug] [2018-11-19T11:33:25.532Z] <<< HTTP RESPONSE 200
+[debug] [2018-11-19T11:33:25.534Z] >>> HTTP REQUEST GET https://cloudresourcemanager.googleapis.com/v1/projects/pomocatcher  
+ 
+[debug] [2018-11-19T11:33:25.845Z] <<< HTTP RESPONSE 200
+[info] 
+[info] === Serving from '/Users/rdbcasillas/programming/vuejsprac/pomocatcher/pomocatcher-client'...
+[info] 
+[warn] ⚠  Setup required, please run: firebase setup:emulators:database
+[debug] [2018-11-19T11:33:25.849Z] >>> HTTP REQUEST GET https://mobilesdk-pa.googleapis.com/v1/projects/450838700838/clients/_:getWebAppConfig  
+ 
+[debug] [2018-11-19T11:33:26.080Z] 
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2018-11-19T11:33:26.287Z] <<< HTTP RESPONSE 200
+[info] i  hosting: Serving hosting files from: dist
+[info] ✔  hosting: Local server: http://localhost:5000

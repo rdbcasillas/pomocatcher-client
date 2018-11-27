@@ -69,3 +69,47 @@ ul {
 div.card-body {
     padding: 0.5rem;
 }
+
+.pomodiv {
+    margin: 4px;
+
+    float: left;
+}
+
+.pomodiv label {
+    float: left;
+    width: 80px;
+    margin: 4px;
+    background-color: #EFEFEF;
+    border-radius: 4px;
+    border: 1px solid #D0D0D0;
+    overflow: auto;
+
+}
+
+.pomodiv label span {
+    text-align: center;
+    font-size: 20px;
+    padding: 13px 0px;
+    display: block;
+}
+
+.pomodiv label input {
+    position: absolute;
+    visibility: hidden;
+}
+
+.pomodiv input:checked+span {
+    background-color: #404040;
+    color: #F7F7F7;
+}
+
+.pomodiv .yellow {
+    background-color: #FFCC00;
+    color: #333;
+}
+
+.pomodiv .blue {
+    background-color: #00BFFF;
+    color: #333;
+}
