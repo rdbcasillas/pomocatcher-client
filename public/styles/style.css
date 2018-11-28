@@ -2,6 +2,12 @@
     display: none !important;
 }
 
+.calsvg {
+    font: 12px sans-serif;
+    width: 100%;
+    height: auto;
+}
+
 .line {
     fill: none;
     stroke: steelblue;

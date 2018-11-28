@@ -19,8 +19,8 @@ const timeObj = {
   25: 5,
   32: 8,
   40: 10,
-  50: 10
-}
+  50: 10,
+};
 
 function createChart() {
   svg

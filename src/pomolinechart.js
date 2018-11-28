@@ -16,7 +16,7 @@ function linechartBuilder() {
   }
   const formatDate = d3.timeFormat('%x');
   const format = d3.format('+.2%');
-  const formatDay = d => 'SMTWTFS'[d.getDay()];
+  const formatDay = d => 'SMTWTFS' [d.getDay()];
   const formatMonth = d3.timeFormat('%b');
 
   const color = d3.scaleSequential(d3.interpolateBlues).domain([0, 10]);
@@ -25,7 +25,12 @@ function linechartBuilder() {
   let countDay = weekday === 'sunday' ? d => d.getDay() : d => (d.getDay() + 6) % 7;
 
   let timeWeek = weekday === 'sunday' ? d3.timeSunday : d3.timeMonday;
-
+  const svg = d3.select('#calendar')
+    .append('svg')
+    .attr('height', height * 2)
+    .style('font', '12px sans-serif')
+    .style('width', '100%')
+    .style('height', 'auto');
   this.createChart = function (data) {
     data.forEach((d) => {
       d.date = new Date(d.date);
@@ -36,27 +41,34 @@ function linechartBuilder() {
       .entries(data)
       .reverse();
 
-    const svg = d3.select('#calendar')
-      .append('svg')
+
+    const svg = d3.select('.calsvg')
       .attr('width', width)
       .attr('height', height * years.length)
-      .style('font', '12px sans-serif')
-      .style('width', '100%')
-      .style('height', 'auto');
-
     const year = svg.selectAll('g')
       .data(years)
-      .enter().append('g')
+
+    let yearEnter = year
+      .enter()
+      .append('g')
+      .merge(year)
       .attr('transform', (d, i) => `translate(40,${height * i + cellSize * 1.5})`);
 
-    year.append('text')
+    yearEnter.append('text');
+    yearEnter.append('g').attr('class', 'days');
+    yearEnter.append('g').attr('class', 'cells');
+    yearEnter.append('g').attr('class', 'months');
+
+    year.merge(yearEnter)
+      .select('text')
       .attr('x', -5)
       .attr('y', -5)
       .attr('font-weight', 'bold')
       .attr('text-anchor', 'end')
       .text(d => d.key);
 
-    year.append('g')
+    year.merge(yearEnter)
+      .select('.days')
       .attr('text-anchor', 'end')
       .selectAll('text')
       .data((weekday === 'weekday' ? d3.range(2, 7) : d3.range(7)).map(i => new Date(1995, 0, i)))
@@ -67,7 +79,8 @@ function linechartBuilder() {
       .attr('dy', '0.31em')
       .text(formatDay);
 
-    year.append('g')
+    year.merge(yearEnter)
+      .select('.cells')
       .selectAll('rect')
       .data(d => d.values)
       .enter()
@@ -80,7 +93,9 @@ function linechartBuilder() {
       .append('title')
       .text(d => `${formatDate(d.date)}: ${d.value} pomos`);
 
-    const month = year.append('g')
+    const month =
+      year.merge(yearEnter)
+      .select('.months')
       .selectAll('g')
       .data(d => d3.timeMonths(d3.timeMonth(d.values[0].date), d.values[d.values.length - 1].date))
       .enter()
@@ -99,4 +114,6 @@ function linechartBuilder() {
   };
 }
 
-export { linechartBuilder };
+export {
+  linechartBuilder
+};

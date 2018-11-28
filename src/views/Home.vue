@@ -48,6 +48,9 @@
 			<button class="btn btn-primary startimer">
 			Start Timer
 			</button>
+			<button @click="addPomo()" class="btn btn-primary adddata">
+			Add data
+			</button>
 			<button class="btn btn-primary restart hidden">
 			Restart
 			</button>
@@ -62,11 +65,13 @@
 		<br>
 		<div class="row">
 			<div class="col-6 d3chart">
-				<div ref="chart">
+				<div id="chart">
 				</div>
 			</div>
 			<div class="col-6 d3chart">
 				<div id="calendar">
+          <svg class="calsvg">
+          </svg>
 				</div>
 			</div>
 		</div>
@@ -96,29 +101,25 @@
 import * as d3 from 'd3';
 import * as c3 from 'c3';
 import { linechartBuilder } from '@/pomolinechart.js';
-const mydata = [];
-db.collection('pomos')
-  .get()
-  .then(res => {
-    res.docs.forEach(doc => {
-      mydata.push(doc.data());
-      console.log(mydata);
-    });
-  });
-//const API = 'https://pomocatcher.herokuapp.com/pomotimer';
+
+// const API = 'https://pomocatcher.herokuapp.com/pomotimer';
 const API = 'http://localhost:9999/pomotimer';
+//const mydata = [];
+const temparr = [];
+const linechart = new linechartBuilder();
 
 export default {
   name: 'home',
   data: () => ({
     pomos: [],
     pomo: {
-      username: '',
+      created: new Date().toString(),
       comment: '',
       pomocount: 1,
       pomotime: 32,
     },
     fullarray: [],
+    mydata: [],
   }),
   computed: {
     latestPomos() {
@@ -145,115 +146,143 @@ export default {
     },
   },
   mounted() {
-    fetch(API)
-      .then(response => response.json())
-      .then(result => {
-        this.pomos = result;
-        console.log(this.pomos);
-        const groupdata = d3
-          .nest()
-          .key(d => d.created)
-          .entries(this.pomos);
-        console.log(groupdata);
-        const d3parse = d3.isoParse;
-        const dates = groupdata.map(d => d3parse(d.key));
-        const pomolist = groupdata.map(d => d.values);
+    // db.collection('pomos')
+    //   .get()
+    //   .then(res => {
+    //     let docs = res.docs;
+    //     docs.forEach(doc => {
+    //       mydata.push(doc.data());
+    //       mydata.forEach(d => {
+    //         d.created = new Date(d['created']).toLocaleDateString();
+    //       });
+    //     });
+    //     this.update();
+    //   });
+    this.chart = c3.generate({
+      bindto: '#chart',
+      data: {
+        x: 'x',
+        columns: [],
+        type: 'bar',
+        groups: [['session1', 'session2', 'session3', 'session4']],
+      },
+      transition: {
+        duration: 500,
+      },
+      axis: {
+        x: {
+          type: 'timeseries',
+          tick: {
+            format: '%m/%d',
+          },
+          label: {
+            text: 'Date',
+            position: 'outer-center',
+          },
+        },
+        y: {
+          tick: {
+            fit: false,
+            values: [1, 2, 3, 4, 5, 6, 7, 8],
+          },
+          label: {
+            text: 'Number of pomos',
+            position: 'outer-center',
+          },
+        },
+      },
+      grid: {
+        y: {
+          lines: [
+            {
+              value: 0,
+            },
+          ],
+        },
+      },
+      leged: {
+        position: 'right',
+      },
+    });
 
-        let maxlen = 0;
-        pomolist.forEach(d => {
-          const currlen = d.length;
-          if (currlen > maxlen) {
-            maxlen = currlen;
-          }
-        });
-        const variables = {};
-        const vararray = [];
-        for (let i = 0; i <= maxlen - 1; i++) {
-          variables[`data${i}`] = pomolist.map(d => {
-            if (d[i]) {
-              return Number(d[i].pomocount);
-            }
-            return 0;
-          });
-          variables[`data${i}`] = [`session${i + 1}`].concat(variables[`data${i}`]);
-          vararray.push(variables[`data${i}`]);
+    db.collection('pomos').onSnapshot(res => {
+      res.docChanges().forEach(change => {
+        const doc = { ...change.doc.data(), id: change.doc.id };
+        console.log(doc);
+        if (change.type == 'added') {
+          this.mydata.push(doc);
+          //this.yourdata.push(doc);
         }
-        const datearr = ['x'].concat(dates);
-        this.fullarray = [datearr].concat(vararray);
-        const chart = c3.generate({
-          bindto: this.$refs.chart,
-          data: {
-            x: 'x',
-            columns: this.fullarray,
-            type: 'bar',
-            groups: [['session1', 'session2', 'session3', 'session4']],
-          },
-          axis: {
-            x: {
-              type: 'timeseries',
-              tick: {
-                format: '%m/%d',
-              },
-              label: {
-                text: 'Date',
-                position: 'outer-center',
-              },
-            },
-            y: {
-              tick: {
-                fit: false,
-                values: [1, 2, 3, 4, 5, 6, 7, 8],
-              },
-              label: {
-                text: 'Number of pomos',
-                position: 'outer-center',
-              },
-            },
-          },
-          grid: {
-            y: {
-              lines: [
-                {
-                  value: 0,
-                },
-              ],
-            },
-          },
-          leged: {
-            position: 'right',
-          },
-        });
-        const temparr = [];
-        groupdata.forEach(d => {
-          const tempobj = {};
-          const values = d.values;
-          tempobj.date = d.key;
-          const totalcount = _.sumBy(values, o => +o.pomocount);
-          const allcomms = _.keys(_.groupBy(values, o => o.comment));
-          tempobj.pomocount = totalcount;
-          tempobj.comments = allcomms;
-          temparr.push(tempobj);
-        });
-
-        const linechart = new linechartBuilder();
-        linechart.createChart(temparr);
+        if (change.type == 'removed') {
+          this.mydata = this.mydata.filter(item => item.id !== doc.id);
+        }
       });
+      this.update();
+    });
   },
   components: {
     // pomolist,
   },
   methods: {
+    update() {
+      this.mydata.forEach(d => {
+        d.created = new Date(d['created']).toLocaleDateString();
+      });
+      this.pomos = this.mydata;
+      const groupdata = d3
+        .nest()
+        .key(d => d.created)
+        .entries(this.pomos);
+      const d3parse = d3.isoParse;
+      const dates = groupdata.map(d => d3parse(d.key));
+      const pomolist = groupdata.map(d => d.values);
+
+      let maxlen = 0;
+      pomolist.forEach(d => {
+        const currlen = d.length;
+        if (currlen > maxlen) {
+          maxlen = currlen;
+        }
+      });
+      const variables = {};
+      const vararray = [];
+      for (let i = 0; i <= maxlen - 1; i++) {
+        variables[`data${i}`] = pomolist.map(d => {
+          if (d[i]) {
+            return Number(d[i].pomocount);
+          }
+          return 0;
+        });
+        variables[`data${i}`] = [`session${i + 1}`].concat(variables[`data${i}`]);
+        vararray.push(variables[`data${i}`]);
+      }
+      const datearr = ['x'].concat(dates);
+      this.fullarray = [datearr].concat(vararray);
+      console.log(chart);
+      this.chart.load({
+        columns: this.fullarray,
+      });
+      groupdata.forEach(d => {
+        const tempobj = {};
+        const values = d.values;
+        tempobj.date = d.key;
+        const totalcount = _.sumBy(values, o => +o.pomocount);
+        const allcomms = _.keys(_.groupBy(values, o => o.comment));
+        tempobj.pomocount = totalcount;
+        tempobj.comments = allcomms;
+        temparr.push(tempobj);
+      });
+
+      linechart.createChart(temparr);
+    },
     addPomo() {
-      fetch(API, {
-        method: 'POST',
-        body: JSON.stringify(this.pomo),
-        headers: {
-          'content-type': 'application/json',
-        },
-      })
-        .then(response => response.json())
-        .then(result => {
-          this.pomos.push(result);
+      db.collection('pomos')
+        .add(this.pomo)
+        .then(function(docRef) {
+          console.log('Document successfully written with ID ' + docRef.id);
+        })
+        .catch(function(error) {
+          console.error('Error adding document: ', error);
         });
     },
     removePomo(pomo, key) {
