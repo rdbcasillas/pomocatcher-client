@@ -1,3 +1,5 @@
+import * as d3 from 'd3';
+
 function clockBuilder() {
 
   const pomoend = document.getElementById('pomoend');
@@ -11,30 +13,33 @@ function clockBuilder() {
     field,
     path,
     label,
+    label2,
     arc,
     totalpomos,
     width = 300,
     height = 300,
     status = 'pomo';
-  const svg = d3v3.select('#countdown').append('svg');
+  let breakmins;
+  let svg;
   const timeObj = {
-    1: 1,
+    .1: .1,
     32: 8,
     40: 10,
     50: 10,
   };
 
   this.createChart = function () {
+    svg = d3.select('#countdown').append('svg');
     svg
       .attr('width', width)
       .attr('height', height)
       .attr('class', 'svgclock');
 
-    selected2 = $("#pomocountdiv input[type='radio']:checked");
+    const selected2 = $("#pomocountdiv input[type='radio']:checked");
     if (selected2.length > 0) {
       totalpomos = Number(selected2.val());
     }
-    selected = $("#pomotimediv input[type='radio']:checked");
+    const selected = $("#pomotimediv input[type='radio']:checked");
     if (selected.length > 0) {
       countmins = Number(selected.val());
     }
@@ -101,19 +106,25 @@ function clockBuilder() {
       .attr('class', 'label2')
       .attr('dy', '2.85em')
       .style('font-size', '12px')
-      .text(pomocounter);
+      .text(elapsedPomos + " / " + totalpomos);
+
+    if (elapsedPomos == 0) {
+
+      update(field, path, label);
+
+    }
   }
 
 
-  d3v3.select('.startimer').on('click', (d) => {
-    console.log("timer was cclicked");
-    createChart();
-    update(field, path, label);
-  });
+  // d3v3.select('.startimer').on('click', (d) => {
+  //   console.log("timer was cclicked");
+  //   createChart();
+  //   update(field, path, label);
+  // });
 
   function getExactTime(seconds) {
-    mins = Math.floor(seconds / 60);
-    secs = seconds % 60;
+    let mins = Math.floor(seconds / 60);
+    let secs = seconds % 60;
     return [mins, secs];
   }
 
@@ -123,9 +134,10 @@ function clockBuilder() {
     if (countsecs < 0) {
       if (totalpomos > elapsedPomos) {
         if (status === 'pomo') {
-          d3v3.select('.label2').text(pomocounter);
-          pomoend.play();
           elapsedPomos++;
+          d3v3.select('.label2')
+            .text(elapsedPomos + " / " + totalpomos);
+          pomoend.play();
           status = 'break';
           countsecs = breakmins * 60;
           fields[0].value = countsecs;
@@ -133,7 +145,8 @@ function clockBuilder() {
           createClock(fields);
           update(field, path, label);
         } else {
-          d3v3.select('.label2').text(pomocounter);
+          d3v3.select('.label2')
+            .text(elapsedPomos + " / " + totalpomos);
           status = 'pomo';
           breakend.play();
           countsecs = countmins * 60;
@@ -145,6 +158,8 @@ function clockBuilder() {
       } else {
         $('#submitdata').click();
         d3v3.select('.svgclock').remove();
+        elapsedPomos = 0;
+        status = 'pomo'
         console.log('session finished!');
       }
     } else {
@@ -162,9 +177,9 @@ function clockBuilder() {
             d3v3.select('#headlabel').html(`${countsecs}s`);
             return `${countsecs}s`;
           }
-          timevalues = getExactTime(countsecs);
-          minutes = timevalues[0];
-          seconds = (timevalues[1] >= 10 ? timevalues[1] : `0${timevalues[1]}`);
+          let timevalues = getExactTime(countsecs);
+          let minutes = timevalues[0];
+          let seconds = (timevalues[1] >= 10 ? timevalues[1] : `0${timevalues[1]}`);
           d3v3.select('#headlabel').html(`${minutes} : ${seconds}`);
           return `${minutes} : ${seconds}`;
         });
@@ -184,7 +199,7 @@ function clockBuilder() {
       return arc(i(t));
     };
   }
-}
+};
 
 export {
   clockBuilder
